@@ -6,21 +6,23 @@ import Tournaments from './pages/Tournaments'
 import Rating from './pages/Rating'
 import Profile from './pages/Profile'
 import TournamentDetail from './pages/TournamentDetail'
+
 const API = import.meta.env.VITE_API_URL
+
 export default function App() {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
+
   useEffect(() => {
     const tg = window.Telegram?.WebApp
     if (tg) {
       tg.expand()
-      tg.setBackgroundColor('
-#1B2D5E')
+      tg.setBackgroundColor('#1B2D5E')
       const tgUser = tg.initDataUnsafe?.user
       if (tgUser) {
         setUser(tgUser)
         // Регистрируем пользователя и сразу получаем профиль
-        fetch(${API}/api/users, {
+        fetch(`${API}/api/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -37,6 +39,7 @@ export default function App() {
       }
     }
   }, [])
+
   return (
     <BrowserRouter>
       <div style={{ paddingBottom: '70px' }}>
