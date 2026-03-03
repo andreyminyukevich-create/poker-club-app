@@ -15,8 +15,8 @@ export default function Profile({ user, profile, setProfile }) {
   useEffect(() => {
     if (!user) return
     if (profile) {
-      setNewNick(profile.Никнейм || '')
-      setNewCity(profile.Город || '')
+      setNewNick(profile.nickname || '')
+      setNewCity(profile.city || '')
     }
     if (!historyLoaded) {
       fetch(`${API}/api/registrations/user/${user.id}`)
@@ -39,7 +39,7 @@ export default function Profile({ user, profile, setProfile }) {
     }).then(r => r.json())
 
     if (res.ok) {
-      setProfile(p => ({ ...p, Никнейм: newNick.trim() }))
+      setProfile(p => ({ ...p, nickname: newNick.trim() }))
       setEditingNick(false)
     } else {
       setNickError(res.error || 'Ошибка сохранения')
@@ -60,7 +60,7 @@ export default function Profile({ user, profile, setProfile }) {
         city: newCity.trim()
       })
     })
-    setProfile(p => ({ ...p, Город: newCity.trim() }))
+    setProfile(p => ({ ...p, city: newCity.trim() }))
     setEditingCity(false)
     setSaving(false)
   }
@@ -86,6 +86,12 @@ export default function Profile({ user, profile, setProfile }) {
     cursor: 'pointer', marginRight: '8px'
   })
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`
+  }
+
   return (
     <div style={{ padding: '16px' }}>
 
@@ -104,7 +110,7 @@ export default function Profile({ user, profile, setProfile }) {
         </div>
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 700 }}>
-            {profile?.Никнейм || user.first_name}
+            {profile?.nickname || user.first_name}
           </h2>
           <p style={{ color: '#8A9BB8', fontSize: '13px' }}>
             {user.username ? `@${user.username}` : ''}
@@ -117,7 +123,7 @@ export default function Profile({ user, profile, setProfile }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: editingNick ? '12px' : '0' }}>
           <div>
             <p style={{ color: '#8A9BB8', fontSize: '12px', marginBottom: '2px' }}>НИКНЕЙМ</p>
-            {!editingNick && <p style={{ fontWeight: 700 }}>⭐ {profile?.Никнейм || '—'}</p>}
+            {!editingNick && <p style={{ fontWeight: 700 }}>⭐ {profile?.nickname || '—'}</p>}
           </div>
           {!editingNick && (
             <button onClick={() => { setEditingNick(true); setNickError('') }} style={{ background: 'none', color: '#C9A84C', fontSize: '13px', cursor: 'pointer' }}>
@@ -153,7 +159,7 @@ export default function Profile({ user, profile, setProfile }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: editingCity ? '12px' : '0' }}>
           <div>
             <p style={{ color: '#8A9BB8', fontSize: '12px', marginBottom: '2px' }}>МОЙ ГОРОД</p>
-            {!editingCity && <p style={{ fontWeight: 700 }}>🏙 {profile?.Город || 'Не указан'}</p>}
+            {!editingCity && <p style={{ fontWeight: 700 }}>🏙 {profile?.city || 'Не указан'}</p>}
           </div>
           {!editingCity && (
             <button onClick={() => setEditingCity(true)} style={{ background: 'none', color: '#C9A84C', fontSize: '13px', cursor: 'pointer' }}>
@@ -199,8 +205,9 @@ export default function Profile({ user, profile, setProfile }) {
             display: 'flex', justifyContent: 'space-between',
             padding: '8px 0', borderBottom: '1px solid #C9A84C11', fontSize: '13px'
           }}>
-            <span style={{ color: '#8A9BB8' }}>{h['Дата записи']}</span>
-            <span style={{ color: h.Статус === 'записан' ? '#2ecc71' : '#C9A84C' }}>{h.Статус}</span>
+            <span style={{ color: '#fff' }}>{h.tournaments?.name || '—'}</span>
+            <span style={{ color: '#8A9BB8', marginLeft: '8px' }}>{formatDate(h.created_at)}</span>
+            <span style={{ color: h.status === 'записан' ? '#2ecc71' : '#C9A84C', marginLeft: '8px' }}>{h.status}</span>
           </div>
         ))}
       </div>
