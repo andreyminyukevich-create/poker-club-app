@@ -1,0 +1,156 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+
+const API = import.meta.env.VITE_API_URL
+
+export default function TournamentDetail({ user }) {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [tournament, setTournament] = useState(null)
+  const [participants, setParticipants] = useState([])
+  const [tab, setTab] = useState('info')
+  const [status, setStatus] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    fetch(`${API}/api/tournaments/${id}`)
+      .then(r => r.json())
+      .then(data => { if (data.ok) setTournament(data.data) })
+
+    fetch(`${API}/api/registrations/tournament/${id}`)
+      .then(r => r.json())
+      .then(data => { if (data.ok) setParticipants(data.data) })
+
+    if (user) {
+      fetch(`${API}/api/registrations/user/${user.id}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.ok) {
+            const reg = data.data.find(r => String(r['ID турнира']) === String(id) && r.Статус !== 'отменён')
+            if (reg) setStatus(reg.Статус)
+          }
+        })
+    }
+  }, [id, user])
+
+  const register = async () => {
+    if (!user) return
+    setLoading(true)
+    const res = await fetch(`${API}/api/registrations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tg_id: user.id, tournament_id: id })
+    }).then(r => r.json())
+    if (res.ok) setStatus(res.status)
+    setLoading(false)
+  }
+
+  const cancel = async () => {
+    if (!user) return
+    setLoading(true)
+    await fetch(`${API}/api/registrations/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tg_id: user.id, tournament_id: id })
+    })
+    setStatus(null)
+    setLoading(false)
+  }
+
+  if (!tournament) return <div style={{ padding: '16px', color: '#8A9BB8' }}>Загрузка...</div>
+
+  const active = participants.filter(p => p.Статус === 'записан')
+
+  return (
+    <div>
+      {/* Шапка */}
+      <div style={{ background: 'linear-gradient(135deg, #1A6B3C, #0F1E40)', padding: '32px 16px 20px' }}>
+        <button onClick={() => navigate(-1)} style={{ background: 'none', color: '#C9A84C', fontSize: '14px', marginBottom: '12px' }}>
+          ← Назад
+        </button>
+        <h1 style={{ fontSize: '26px', fontWeight: 900 }}>{tournament.Название}</h1>
+      </div>
+
+      {/* Табы */}
+      <div style={{ display: 'flex', gap: '8px', padding: '16px', borderBottom: '1px solid #C9A84C22' }}>
+        {['info', 'participants'].map(t => (
+          <button key={t} onClick={() => setTab(t)} style={{
+            padding: '8px 16px', borderRadius: '20px', fontSize: '13px',
+            background: tab === t ? '#C9A84C' : '#0F1E40',
+            color: tab === t ? '#1B2D5E' : '#8A9BB8',
+            border: '1px solid #C9A84C33', fontWeight: tab === t ? 700 : 400
+          }}>
+            {t === 'info' ? '🏆 О турнире' : `👥 Участники (${active.length}/${tournament['Мест всего']})`}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: '16px' }}>
+        {tab === 'info' && (
+          <div>
+            <h3 style={{ color: '#C9A84C', marginBottom: '8px' }}>Когда и где</h3>
+            <p style={{ color: '#8A9BB8', marginBottom: '4px' }}>📍 {tournament.Город}</p>
+            <p style={{ color: '#8A9BB8', marginBottom: '16px' }}>🕐 {tournament.Дата} / {tournament.Время}</p>
+
+            {tournament.Описание && (
+              <>
+                <h3 style={{ color: '#C9A84C', marginBottom: '8px' }}>Описание</h3>
+                <p style={{ color: '#FFFFFF', lineHeight: 1.6 }}>{tournament.Описание}</p>
+              </>
+            )}
+
+            {/* Кнопка записи */}
+            <div style={{ marginTop: '24px' }}>
+              {!status && (
+                <button onClick={register} disabled={loading} style={{
+                  width: '100%', padding: '14px', borderRadius: '12px',
+                  background: '#C9A84C', color: '#1B2D5E', fontSize: '16px', fontWeight: 700
+                }}>
+                  {loading ? 'Загрузка...' : 'Записаться'}
+                </button>
+              )}
+              {status === 'записан' && (
+                <div>
+                  <div style={{ background: '#1A6B3C22', border: '1px solid #1A6B3C', borderRadius: '12px', padding: '12px', marginBottom: '12px', textAlign: 'center', color: '#1A6B3C' }}>
+                    ✅ Вы записаны
+                  </div>
+                  <button onClick={cancel} disabled={loading} style={{
+                    width: '100%', padding: '12px', borderRadius: '12px',
+                    background: 'transparent', border: '1px solid #C0392B', color: '#C0392B', fontSize: '14px'
+                  }}>
+                    Отменить запись
+                  </button>
+                </div>
+              )}
+              {status === 'лист ожидания' && (
+                <div>
+                  <div style={{ background: '#C9A84C22', border: '1px solid #C9A84C', borderRadius: '12px', padding: '12px', marginBottom: '12px', textAlign: 'center', color: '#C9A84C' }}>
+                    ⏳ Вы в листе ожидания
+                  </div>
+                  <button onClick={cancel} disabled={loading} style={{
+                    width: '100%', padding: '12px', borderRadius: '12px',
+                    background: 'transparent', border: '1px solid #C0392B', color: '#C0392B', fontSize: '14px'
+                  }}>
+                    Отменить
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {tab === 'participants' && (
+          <div>
+            {active.length === 0 && <p style={{ color: '#8A9BB8' }}>Пока никто не записался</p>}
+            {active.map((p, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0', borderBottom: '1px solid #C9A84C11' }}>
+                <span style={{ color: '#8A9BB8', width: '24px' }}>{i + 1}</span>
+                <span>{p.TG_ID}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
