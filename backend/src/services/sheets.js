@@ -1,11 +1,18 @@
+const cache = require('./cache');
+
 const GAS_URL = process.env.GAS_URL;
 
 // Получить все строки из листа
 async function getSheet(sheetName) {
+  const cached = cache.get(sheetName);
+  if (cached) return cached;
+
   const url = `${GAS_URL}?action=get&sheet=${sheetName}`;
   const res = await fetch(url);
   const json = await res.json();
   if (!json.ok) throw new Error(json.error);
+
+  cache.set(sheetName, json.data);
   return json.data;
 }
 
@@ -18,6 +25,7 @@ async function addRow(sheetName, row) {
   });
   const json = await res.json();
   if (!json.ok) throw new Error(json.error);
+  cache.invalidate(sheetName);
   return json;
 }
 
@@ -30,6 +38,7 @@ async function updateRow(sheetName, id, row) {
   });
   const json = await res.json();
   if (!json.ok) throw new Error(json.error);
+  cache.invalidate(sheetName);
   return json;
 }
 
@@ -42,6 +51,7 @@ async function deleteRow(sheetName, id) {
   });
   const json = await res.json();
   if (!json.ok) throw new Error(json.error);
+  cache.invalidate(sheetName);
   return json;
 }
 
