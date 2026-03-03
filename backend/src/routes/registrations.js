@@ -1,27 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { getSheet, addRow, updateRow } = require('../services/sheets');
-const cache = require('../services/cache');
+const supabase = require('../services/supabase');
 
 // Получить все записи на турнир
 router.get('/tournament/:tournamentId', async (req, res) => {
   try {
-    const [registrations, users] = await Promise.all([
-      getSheet('registrations'),
-      getSheet('users')
-    ]);
+    const { data, error } = await supabase
+      .from('registrations')
+      .select('*, users(nickname, first_name)')
+      .eq('tournament_id', req.params.tournamentId)
+      .neq('status', 'отменён');
 
-    const result = registrations
-      .filter(r => String(r['ID турнира']) === String(req.params.tournamentId))
-      .map(r => {
-        const user = users.find(u => String(u.TG_ID) === String(r.TG_ID))
-        return {
-          ...r,
-          Никнейм: user?.Никнейм || `Игрок ${r.TG_ID}`
-        }
-      });
-
-    res.json({ ok: true, data: result });
+    if (error) throw error;
+    res.json({ ok: true, data });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -30,11 +21,14 @@ router.get('/tournament/:tournamentId', async (req, res) => {
 // Получить записи пользователя
 router.get('/user/:tgId', async (req, res) => {
   try {
-    const registrations = await getSheet('registrations');
-    const result = registrations.filter(
-      r => String(r.TG_ID) === String(req.params.tgId)
-    );
-    res.json({ ok: true, data: result });
+    const { data, error } = await supabase
+      .from('registrations')
+      .select('*, tournaments(name, date, time)')
+      .eq('tg_id', req.params.tgId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json({ ok: true, data });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -45,43 +39,43 @@ router.post('/', async (req, res) => {
   try {
     const { tg_id, tournament_id } = req.body;
 
-    const [registrations, tournaments] = await Promise.all([
-      getSheet('registrations'),
-      getSheet('tournaments')
-    ]);
+    // Проверяем не записан ли уже
+    const { data: existing } = await supabase
+      .from('registrations')
+      .select('id')
+      .eq('tg_id', tg_id)
+      .eq('tournament_id', tournament_id)
+      .neq('status', 'отменён')
+      .single();
 
-    const existing = registrations.find(
-      r => String(r.TG_ID) === String(tg_id) &&
-           String(r['ID турнира']) === String(tournament_id) &&
-           r.Статус !== 'отменён'
-    );
     if (existing) {
       return res.status(400).json({ ok: false, error: 'Вы уже записаны на этот турнир' });
     }
 
-    const tournament = tournaments.find(t => String(t.ID) === String(tournament_id));
-    if (!tournament) return res.status(404).json({ ok: false, error: 'Турнир не найден' });
+    // Проверяем лимит мест
+    const { data: tournament } = await supabase
+      .from('tournaments')
+      .select('seats')
+      .eq('id', tournament_id)
+      .single();
 
-    const activeRegs = registrations.filter(
-      r => String(r['ID турнира']) === String(tournament_id) && r.Статус === 'записан'
-    );
+    if (!tournament) {
+      return res.status(404).json({ ok: false, error: 'Турнир не найден' });
+    }
 
-    const status = activeRegs.length >= Number(tournament['Мест всего'])
-      ? 'лист ожидания'
-      : 'записан';
+    const { count } = await supabase
+      .from('registrations')
+      .select('id', { count: 'exact' })
+      .eq('tournament_id', tournament_id)
+      .eq('status', 'записан');
 
-    const newId = Date.now().toString();
-    await addRow('registrations', {
-      ID: newId,
-      TG_ID: tg_id,
-      'ID турнира': tournament_id,
-      Статус: status,
-      'Дата записи': new Date().toLocaleDateString('ru-RU')
-    });
+    const status = count >= tournament.seats ? 'лист ожидания' : 'записан';
 
-    // Сбрасываем кеш регистраций
-    cache.invalidate('registrations');
+    const { error } = await supabase
+      .from('registrations')
+      .insert({ tg_id, tournament_id, status });
 
+    if (error) throw error;
     res.json({ ok: true, status });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -92,19 +86,15 @@ router.post('/', async (req, res) => {
 router.post('/cancel', async (req, res) => {
   try {
     const { tg_id, tournament_id } = req.body;
-    const registrations = await getSheet('registrations');
-    const reg = registrations.find(
-      r => String(r.TG_ID) === String(tg_id) &&
-           String(r['ID турнира']) === String(tournament_id) &&
-           r.Статус !== 'отменён'
-    );
-    if (!reg) return res.status(404).json({ ok: false, error: 'Запись не найдена' });
 
-    await updateRow('registrations', reg.ID, { ...reg, Статус: 'отменён' });
+    const { error } = await supabase
+      .from('registrations')
+      .update({ status: 'отменён' })
+      .eq('tg_id', tg_id)
+      .eq('tournament_id', tournament_id)
+      .neq('status', 'отменён');
 
-    // Сбрасываем кеш регистраций
-    cache.invalidate('registrations');
-
+    if (error) throw error;
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
