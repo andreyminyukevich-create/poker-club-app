@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getSheet, addRow, updateRow } = require('../services/sheets');
+const supabase = require('../services/supabase');
 
 const ADJECTIVES = [
   'Звёздный', 'Лунный', 'Солнечный', 'Тёмный', 'Огненный',
@@ -24,10 +24,17 @@ function generateNickname() {
 // Получить пользователя по TG_ID
 router.get('/:tgId', async (req, res) => {
   try {
-    const users = await getSheet('users');
-    const user = users.find(u => String(u.TG_ID) === String(req.params.tgId));
-    if (!user) return res.status(404).json({ ok: false, error: 'Пользователь не найден' });
-    res.json({ ok: true, data: user });
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('tg_id', req.params.tgId)
+      .single();
+
+    if (error && error.code === 'PGRST116') {
+      return res.status(404).json({ ok: false, error: 'Пользователь не найден' });
+    }
+    if (error) throw error;
+    res.json({ ok: true, data });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -37,43 +44,102 @@ router.get('/:tgId', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { tg_id, first_name, last_name, city } = req.body;
-    const users = await getSheet('users');
-    const exists = users.find(u => String(u.TG_ID) === String(tg_id));
 
-    if (exists) {
-      await updateRow('users', tg_id, {
-        TG_ID: tg_id,
-        Никнейм: exists.Никнейм,
-        Имя: first_name,
-        Фамилия: last_name,
-        Город: city || exists.Город
-      });
-      res.json({ ok: true, data: exists });
-    } else {
-      // Генерируем уникальный ник
-      let nickname = generateNickname();
-      let attempts = 0;
-      while (users.find(u => u.Никнейм === nickname) && attempts < 10) {
-        nickname = generateNickname();
-        attempts++;
-      }
+    // Проверяем существует ли пользователь
+    const { data: existing } = await supabase
+      .from('users')
+      .select('*')
+      .eq('tg_id', tg_id)
+      .single();
 
-      // Добавляем пользователя
-      await addRow('users', {
-        TG_ID: tg_id,
-        Никнейм: nickname,
-        Имя: first_name,
-        Фамилия: last_name,
-        Город: city || '',
-        'Дата регистрации': new Date().toLocaleDateString('ru-RU')
-      });
+    if (existing) {
+      const { data, error } = await supabase
+        .from('users')
+        .update({ first_name, last_name, city: city || existing.city })
+        .eq('tg_id', tg_id)
+        .select()
+        .single();
+      if (error) throw error;
+      return res.json({ ok: true, data });
+    }
 
-      // Добавляем в рейтинг с нулями
-      const ratings = await getSheet('ratings');
-      const inRating = ratings.find(r => String(r.TG_ID) === String(tg_id));
-      if (!inRating) {
-        await addRow('ratings', {
-          TG_ID: tg_id,
+    // Генерируем уникальный ник
+    let nickname = generateNickname();
+    let attempts = 0;
+    while (attempts < 10) {
+      const { data: taken } = await supabase
+        .from('users')
+        .select('tg_id')
+        .eq('nickname', nickname)
+        .single();
+      if (!taken) break;
+      nickname = generateNickname();
+      attempts++;
+    }
+
+    // Создаём пользователя
+    const { data, error } = await supabase
+      .from('users')
+      .insert({ tg_id, nickname, first_name, last_name, city: city || '' })
+      .select()
+      .single();
+    if (error) throw error;
+
+    // Добавляем в рейтинг с нулями
+    await supabase.from('ratings').insert({
+      tg_id,
+      nickname,
+      season: new Date().getFullYear(),
+      knockouts: 0,
+      points: 0,
+      city: city || ''
+    });
+
+    res.json({ ok: true, data });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Обновить никнейм
+router.patch('/:tgId/nickname', async (req, res) => {
+  try {
+    const { nickname } = req.body;
+    if (!nickname?.trim()) {
+      return res.status(400).json({ ok: false, error: 'Никнейм не может быть пустым' });
+    }
+
+    // Проверка уникальности
+    const { data: taken } = await supabase
+      .from('users')
+      .select('tg_id')
+      .eq('nickname', nickname.trim())
+      .neq('tg_id', req.params.tgId)
+      .single();
+
+    if (taken) {
+      return res.status(400).json({ ok: false, error: 'Этот никнейм уже занят' });
+    }
+
+    // Обновляем в users
+    await supabase
+      .from('users')
+      .update({ nickname: nickname.trim() })
+      .eq('tg_id', req.params.tgId);
+
+    // Обновляем в ratings
+    await supabase
+      .from('ratings')
+      .update({ nickname: nickname.trim() })
+      .eq('tg_id', req.params.tgId);
+
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+module.exports = router;          TG_ID: tg_id,
           Никнейм: nickname,
           Сезон: new Date().getFullYear(),
           Ноки: 0,
