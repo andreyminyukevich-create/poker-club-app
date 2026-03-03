@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { bot } = require('./bot');
 
 const tournamentsRouter = require('./routes/tournaments');
 const usersRouter = require('./routes/users');
@@ -27,3 +28,11 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
 });
+
+// Запускаем бота
+if (process.env.BOT_TOKEN) {
+  bot.start();
+  console.log('Бот запущен');
+} else {
+  console.log('BOT_TOKEN не указан — бот не запущен');
+}
