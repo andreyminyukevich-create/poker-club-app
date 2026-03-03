@@ -5,10 +5,21 @@ const { getSheet, addRow, updateRow } = require('../services/sheets');
 // Получить все записи на турнир
 router.get('/tournament/:tournamentId', async (req, res) => {
   try {
-    const registrations = await getSheet('registrations');
-    const result = registrations.filter(
-      r => String(r['ID турнира']) === String(req.params.tournamentId)
-    );
+    const [registrations, users] = await Promise.all([
+      getSheet('registrations'),
+      getSheet('users')
+    ]);
+
+    const result = registrations
+      .filter(r => String(r['ID турнира']) === String(req.params.tournamentId))
+      .map(r => {
+        const user = users.find(u => String(u.TG_ID) === String(r.TG_ID))
+        return {
+          ...r,
+          Никнейм: user?.Никнейм || `Игрок ${r.TG_ID}`
+        }
+      });
+
     res.json({ ok: true, data: result });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -33,8 +44,12 @@ router.post('/', async (req, res) => {
   try {
     const { tg_id, tournament_id } = req.body;
 
+    const [registrations, tournaments] = await Promise.all([
+      getSheet('registrations'),
+      getSheet('tournaments')
+    ]);
+
     // Проверяем не записан ли уже
-    const registrations = await getSheet('registrations');
     const existing = registrations.find(
       r => String(r.TG_ID) === String(tg_id) &&
            String(r['ID турнира']) === String(tournament_id) &&
@@ -44,8 +59,6 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ ok: false, error: 'Вы уже записаны на этот турнир' });
     }
 
-    // Проверяем лимит мест
-    const tournaments = await getSheet('tournaments');
     const tournament = tournaments.find(t => String(t.ID) === String(tournament_id));
     if (!tournament) return res.status(404).json({ ok: false, error: 'Турнир не найден' });
 
