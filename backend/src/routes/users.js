@@ -50,7 +50,14 @@ router.post('/', async (req, res) => {
       });
       res.json({ ok: true, data: exists });
     } else {
-      const nickname = generateNickname();
+      // Генерируем уникальный ник
+      let nickname = generateNickname();
+      let attempts = 0;
+      while (users.find(u => u.Никнейм === nickname) && attempts < 10) {
+        nickname = generateNickname();
+        attempts++;
+      }
+
       await addRow('users', {
         TG_ID: tg_id,
         Никнейм: nickname,
@@ -70,11 +77,24 @@ router.post('/', async (req, res) => {
 router.patch('/:tgId/nickname', async (req, res) => {
   try {
     const { nickname } = req.body;
+    if (!nickname || !nickname.trim()) {
+      return res.status(400).json({ ok: false, error: 'Никнейм не может быть пустым' });
+    }
+
     const users = await getSheet('users');
+
+    // Проверка уникальности
+    const taken = users.find(
+      u => u.Никнейм === nickname.trim() && String(u.TG_ID) !== String(req.params.tgId)
+    );
+    if (taken) {
+      return res.status(400).json({ ok: false, error: 'Этот никнейм уже занят' });
+    }
+
     const user = users.find(u => String(u.TG_ID) === String(req.params.tgId));
     if (!user) return res.status(404).json({ ok: false, error: 'Пользователь не найден' });
 
-    await updateRow('users', req.params.tgId, { ...user, Никнейм: nickname });
+    await updateRow('users', req.params.tgId, { ...user, Никнейм: nickname.trim() });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
