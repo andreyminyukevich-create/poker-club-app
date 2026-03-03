@@ -22,7 +22,11 @@ async function notify(tgId, message) {
   }
 }
 
-async function startBot() {
+async function startBot(attempt = 1) {
+  if (attempt > 5) {
+    console.log('Бот: превышено количество попыток, пропускаем');
+    return;
+  }
   try {
     await bot.start({
       onStart: () => console.log('Бот запущен'),
@@ -30,8 +34,8 @@ async function startBot() {
     });
   } catch (err) {
     if (err.error_code === 409) {
-      console.log('Конфликт — ждём 5 секунд и пробуем снова...');
-      setTimeout(startBot, 5000);
+      console.log(`Конфликт — попытка ${attempt}/5, ждём ${attempt * 5} сек...`);
+      setTimeout(() => startBot(attempt + 1), attempt * 5000);
     } else {
       console.error('Ошибка бота:', err.message);
     }
