@@ -12,6 +12,7 @@ const ratingsRouter = require('./routes/ratings');
 const healthRouter = require('./routes/health');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Security
 app.use(helmet());
