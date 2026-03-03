@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 
 const API = import.meta.env.VITE_API_URL
 
-export default function Profile({ user }) {
-  const [profile, setProfile] = useState(null)
+export default function Profile({ user, profile, setProfile }) {
   const [history, setHistory] = useState([])
   const [editingNick, setEditingNick] = useState(false)
   const [editingCity, setEditingCity] = useState(false)
@@ -11,23 +10,23 @@ export default function Profile({ user }) {
   const [newCity, setNewCity] = useState('')
   const [saving, setSaving] = useState(false)
   const [nickError, setNickError] = useState('')
+  const [historyLoaded, setHistoryLoaded] = useState(false)
 
   useEffect(() => {
     if (!user) return
-    fetch(`${API}/api/users/${user.id}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.ok) {
-          setProfile(data.data)
-          setNewNick(data.data.Никнейм || '')
-          setNewCity(data.data.Город || '')
-        }
-      })
-
-    fetch(`${API}/api/registrations/user/${user.id}`)
-      .then(r => r.json())
-      .then(data => { if (data.ok) setHistory(data.data) })
-  }, [user])
+    if (profile) {
+      setNewNick(profile.Никнейм || '')
+      setNewCity(profile.Город || '')
+    }
+    if (!historyLoaded) {
+      fetch(`${API}/api/registrations/user/${user.id}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.ok) setHistory(data.data)
+          setHistoryLoaded(true)
+        })
+    }
+  }, [user, profile])
 
   const saveNickname = async () => {
     if (!newNick.trim()) return
@@ -83,7 +82,8 @@ export default function Profile({ user }) {
     padding: '8px 16px', borderRadius: '8px', fontSize: '13px',
     background: color === '#C9A84C' ? '#C9A84C' : 'transparent',
     color: color === '#C9A84C' ? '#1B2D5E' : '#8A9BB8',
-    border: `1px solid ${color}`, fontWeight: 700, cursor: 'pointer', marginRight: '8px'
+    border: `1px solid ${color}`, fontWeight: 700,
+    cursor: 'pointer', marginRight: '8px'
   })
 
   return (
@@ -190,20 +190,17 @@ export default function Profile({ user }) {
       {/* История игр */}
       <div style={{ background: '#0F1E40', borderRadius: '12px', padding: '16px', border: '1px solid #C9A84C33' }}>
         <p style={{ fontWeight: 700, marginBottom: '12px' }}>ИСТОРИЯ ИГР</p>
-        {history.length === 0 && (
+        {!historyLoaded && <p style={{ color: '#8A9BB8', fontSize: '13px' }}>Загрузка...</p>}
+        {historyLoaded && history.length === 0 && (
           <p style={{ color: '#8A9BB8', fontSize: '13px' }}>Вы ещё не участвовали в турнирах</p>
         )}
         {history.map((h, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #C9A84C11', fontSize: '13px' }}>
+          <div key={i} style={{
+            display: 'flex', justifyContent: 'space-between',
+            padding: '8px 0', borderBottom: '1px solid #C9A84C11', fontSize: '13px'
+          }}>
             <span style={{ color: '#8A9BB8' }}>{h['Дата записи']}</span>
-            <span style={{ color: h.Статус === 'записан' ? '#1A6B3C' : '#C9A84C' }}>{h.Статус}</span>
-          </div>
-        ))}
-      </div>
-
-    </div>
-  )
-}            }}>{h.Статус}</span>
+            <span style={{ color: h.Статус === 'записан' ? '#2ecc71' : '#C9A84C' }}>{h.Статус}</span>
           </div>
         ))}
       </div>
