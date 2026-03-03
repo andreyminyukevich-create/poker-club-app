@@ -17,21 +17,27 @@ const app = express();
 app.use(helmet());
 
 // CORS
-var corsOptions = {};
-if (config.allowedOrigins[0] === '*') {
-  corsOptions = {};
-} else {
-  corsOptions = {
-    origin: function(origin, callback) {
-      if (!origin || config.allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('CORS not allowed'));
-      }
-    },
-    credentials: true,
-  };
-}
+var corsOptions = {
+  origin: function(origin, callback) {
+    var allowed = [
+      'https://pleasing-gratitude-production.up.railway.app',
+      'https://poker-club-app-production-41ec.up.railway.app'
+    ];
+    // Add custom origins from env
+    if (config.allowedOrigins && config.allowedOrigins[0] !== '*') {
+      config.allowedOrigins.forEach(function(o) {
+        if (allowed.indexOf(o) === -1) allowed.push(o);
+      });
+    }
+    // Allow requests with no origin (mobile apps, curl, etc)
+    if (!origin || allowed.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed'));
+    }
+  },
+  credentials: true,
+};
 app.use(cors(corsOptions));
 
 // Body parsing with size limit
@@ -67,3 +73,17 @@ app.use(errorHandler);
 app.listen(config.port, function() {
   console.log('[API] Server running on port ' + config.port);
 });
+
+// Start bot in same process
+console.log('[BOOT] BOT_TOKEN present:', !!config.botToken);
+if (config.botToken) {
+  try {
+    var startBot = require('./bot-worker-inline');
+    startBot();
+    console.log('[BOOT] Bot startup initiated');
+  } catch (err) {
+    console.error('[BOOT] Bot startup FAILED:', err.message, err.stack);
+  }
+} else {
+  console.log('[BOT] BOT_TOKEN not set, bot not started');
+}
