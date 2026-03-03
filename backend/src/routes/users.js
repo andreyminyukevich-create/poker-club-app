@@ -58,6 +58,7 @@ router.post('/', async (req, res) => {
         attempts++;
       }
 
+      // Добавляем пользователя
       await addRow('users', {
         TG_ID: tg_id,
         Никнейм: nickname,
@@ -66,6 +67,21 @@ router.post('/', async (req, res) => {
         Город: city || '',
         'Дата регистрации': new Date().toLocaleDateString('ru-RU')
       });
+
+      // Добавляем в рейтинг с нулями
+      const ratings = await getSheet('ratings');
+      const inRating = ratings.find(r => String(r.TG_ID) === String(tg_id));
+      if (!inRating) {
+        await addRow('ratings', {
+          TG_ID: tg_id,
+          Никнейм: nickname,
+          Сезон: new Date().getFullYear(),
+          Ноки: 0,
+          Очки: 0,
+          Город: city || ''
+        });
+      }
+
       res.json({ ok: true, data: { TG_ID: tg_id, Никнейм: nickname } });
     }
   } catch (err) {
@@ -74,6 +90,42 @@ router.post('/', async (req, res) => {
 });
 
 // Обновить никнейм
+router.patch('/:tgId/nickname', async (req, res) => {
+  try {
+    const { nickname } = req.body;
+    if (!nickname || !nickname.trim()) {
+      return res.status(400).json({ ok: false, error: 'Никнейм не может быть пустым' });
+    }
+
+    const users = await getSheet('users');
+
+    const taken = users.find(
+      u => u.Никнейм === nickname.trim() && String(u.TG_ID) !== String(req.params.tgId)
+    );
+    if (taken) {
+      return res.status(400).json({ ok: false, error: 'Этот никнейм уже занят' });
+    }
+
+    const user = users.find(u => String(u.TG_ID) === String(req.params.tgId));
+    if (!user) return res.status(404).json({ ok: false, error: 'Пользователь не найден' });
+
+    // Обновляем ник в users
+    await updateRow('users', req.params.tgId, { ...user, Никнейм: nickname.trim() });
+
+    // Обновляем ник в ratings
+    const ratings = await getSheet('ratings');
+    const rating = ratings.find(r => String(r.TG_ID) === String(req.params.tgId));
+    if (rating) {
+      await updateRow('ratings', req.params.tgId, { ...rating, Никнейм: nickname.trim() });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+module.exports = router;// Обновить никнейм
 router.patch('/:tgId/nickname', async (req, res) => {
   try {
     const { nickname } = req.body;
