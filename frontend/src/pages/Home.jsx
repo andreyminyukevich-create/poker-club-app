@@ -18,6 +18,15 @@ export default function Home({ user }) {
       .catch(console.error)
   }, [])
 
+  const formatDate = (date, time) => {
+    if (!date) return ''
+    const d = new Date(date)
+    const day = String(d.getDate()).padStart(2, '0')
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const timeStr = time ? time.slice(0, 5) : ''
+    return `${day}.${month} / ${timeStr}`
+  }
+
   return (
     <div style={{ padding: '16px' }}>
 
@@ -31,17 +40,17 @@ export default function Home({ user }) {
       {/* Ближайший турнир */}
       <p style={{ color: '#8A9BB8', marginBottom: '8px', fontSize: '13px' }}>Ближайший турнир</p>
       {tournament ? (
-        <div onClick={() => navigate(`/tournaments/${tournament.ID}`)} style={{
+        <div onClick={() => navigate(`/tournaments/${tournament.id}`)} style={{
           background: '#0F1E40', borderRadius: '12px', padding: '16px',
           border: '1px solid #C9A84C33', marginBottom: '16px', cursor: 'pointer'
         }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{tournament.Название}</h2>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{tournament.name}</h2>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{ background: '#1B2D5E', borderRadius: '20px', padding: '4px 10px', fontSize: '12px', color: '#8A9BB8' }}>
-              📍 {tournament.Город}
+              📍 {tournament.city}
             </span>
             <span style={{ background: '#1B2D5E', borderRadius: '20px', padding: '4px 10px', fontSize: '12px', color: '#8A9BB8' }}>
-              🕐 {tournament.Дата} / {tournament.Время}
+              🕐 {formatDate(tournament.date, tournament.time)}
             </span>
           </div>
         </div>
@@ -61,7 +70,7 @@ export default function Home({ user }) {
         <button style={{
           background: '#C9A84C22', border: '1px solid #C9A84C',
           borderRadius: '20px', padding: '6px 14px',
-          color: '#C9A84C', fontSize: '13px'
+          color: '#C9A84C', fontSize: '13px', cursor: 'pointer'
         }}>
           ⭐ Рейтинг игроков
         </button>
