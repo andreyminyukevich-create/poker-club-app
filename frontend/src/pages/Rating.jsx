@@ -78,7 +78,7 @@ export default function Rating() {
       )}
 
       {filtered.map((player, i) => (
-        <div key={player.id} style={{
+        <div key={player.id || i} style={{
           display: 'flex', alignItems: 'center',
           padding: '12px 8px', borderBottom: '1px solid #C9A84C11'
         }}>
@@ -86,21 +86,6 @@ export default function Rating() {
           <span style={{ flex: 1, fontWeight: 600 }}>{player.nickname}</span>
           <span style={{ width: '50px', textAlign: 'right', color: '#8A9BB8' }}>{player.knockouts || 0}</span>
           <span style={{ width: '70px', textAlign: 'right', color: '#C9A84C', fontWeight: 700 }}>{player.points || 0}</span>
-        </div>
-      ))}
-    </div>
-  )
-}      )}
-
-      {filtered.map((player, i) => (
-        <div key={i} style={{
-          display: 'flex', alignItems: 'center',
-          padding: '12px 8px', borderBottom: '1px solid #C9A84C11'
-        }}>
-          <span style={{ color: '#8A9BB8', width: '24px', fontSize: '14px' }}>{i + 1}</span>
-          <span style={{ flex: 1, marginLeft: '12px', fontWeight: 600 }}>{player.Никнейм}</span>
-          <span style={{ width: '50px', textAlign: 'right', color: '#8A9BB8' }}>{player.Ноки || 0}</span>
-          <span style={{ width: '70px', textAlign: 'right', color: '#C9A84C', fontWeight: 700 }}>{player.Очки || 0}</span>
         </div>
       ))}
     </div>
