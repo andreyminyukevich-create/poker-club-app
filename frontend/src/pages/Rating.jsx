@@ -19,7 +19,7 @@ export default function Rating() {
   }, [])
 
   const filtered = ratings.filter(r =>
-    r.Никнейм?.toLowerCase().includes(search.toLowerCase())
+    r.nickname?.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
@@ -39,7 +39,8 @@ export default function Rating() {
             padding: '8px 14px', borderRadius: '20px', fontSize: '13px',
             background: tab === t.key ? '#C9A84C' : '#0F1E40',
             color: tab === t.key ? '#1B2D5E' : '#8A9BB8',
-            border: '1px solid #C9A84C33', fontWeight: tab === t.key ? 700 : 400
+            border: '1px solid #C9A84C33', fontWeight: tab === t.key ? 700 : 400,
+            cursor: 'pointer'
           }}>
             {t.label}
           </button>
@@ -64,9 +65,10 @@ export default function Rating() {
 
       {/* Заголовок таблицы */}
       <div style={{ display: 'flex', padding: '0 8px 8px', color: '#8A9BB8', fontSize: '12px' }}>
+        <span style={{ width: '32px' }}>#</span>
         <span style={{ flex: 1 }}>Никнейм</span>
         <span style={{ width: '50px', textAlign: 'right' }}>Ноки</span>
-        <span style={{ width: '70px', textAlign: 'right' }}>Рейтинг</span>
+        <span style={{ width: '70px', textAlign: 'right' }}>Очки</span>
       </div>
 
       {loading && <p style={{ color: '#8A9BB8' }}>Загрузка...</p>}
@@ -74,6 +76,21 @@ export default function Rating() {
       {!loading && filtered.length === 0 && (
         <p style={{ color: '#8A9BB8', textAlign: 'center', marginTop: '32px' }}>Нет данных</p>
       )}
+
+      {filtered.map((player, i) => (
+        <div key={player.id} style={{
+          display: 'flex', alignItems: 'center',
+          padding: '12px 8px', borderBottom: '1px solid #C9A84C11'
+        }}>
+          <span style={{ color: '#8A9BB8', width: '32px', fontSize: '14px' }}>{i + 1}</span>
+          <span style={{ flex: 1, fontWeight: 600 }}>{player.nickname}</span>
+          <span style={{ width: '50px', textAlign: 'right', color: '#8A9BB8' }}>{player.knockouts || 0}</span>
+          <span style={{ width: '70px', textAlign: 'right', color: '#C9A84C', fontWeight: 700 }}>{player.points || 0}</span>
+        </div>
+      ))}
+    </div>
+  )
+}      )}
 
       {filtered.map((player, i) => (
         <div key={i} style={{
