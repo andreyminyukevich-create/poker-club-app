@@ -31,9 +31,9 @@ export default function TournamentDetail({ user }) {
         .then(data => {
           if (data.ok) {
             const reg = data.data.find(
-              r => String(r['ID турнира']) === String(id) && r.Статус !== 'отменён'
+              r => String(r.tournament_id) === String(id) && r.status !== 'отменён'
             )
-            if (reg) setStatus(reg.Статус)
+            if (reg) setStatus(reg.status)
           }
         })
     }
@@ -67,9 +67,18 @@ export default function TournamentDetail({ user }) {
     setLoading(false)
   }
 
+  const formatDate = (date, time) => {
+    if (!date) return ''
+    const d = new Date(date)
+    const day = String(d.getDate()).padStart(2, '0')
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const timeStr = time ? time.slice(0, 5) : ''
+    return `${day}.${month} / ${timeStr}`
+  }
+
   if (!tournament) return <div style={{ padding: '16px', color: '#8A9BB8' }}>Загрузка...</div>
 
-  const active = participants.filter(p => p.Статус === 'записан')
+  const active = participants.filter(p => p.status === 'записан')
 
   return (
     <div>
@@ -78,7 +87,7 @@ export default function TournamentDetail({ user }) {
         <button onClick={() => navigate(-1)} style={{ background: 'none', color: '#C9A84C', fontSize: '14px', marginBottom: '12px', cursor: 'pointer' }}>
           ← Назад
         </button>
-        <h1 style={{ fontSize: '26px', fontWeight: 900 }}>{tournament.Название}</h1>
+        <h1 style={{ fontSize: '26px', fontWeight: 900 }}>{tournament.name}</h1>
       </div>
 
       {/* Табы */}
@@ -91,7 +100,7 @@ export default function TournamentDetail({ user }) {
             border: '1px solid #C9A84C33', fontWeight: tab === t ? 700 : 400,
             cursor: 'pointer'
           }}>
-            {t === 'info' ? '🏆 О турнире' : `👥 Участники (${active.length}/${tournament['Мест всего']})`}
+            {t === 'info' ? '🏆 О турнире' : `👥 Участники (${active.length}/${tournament.seats})`}
           </button>
         ))}
       </div>
@@ -100,17 +109,16 @@ export default function TournamentDetail({ user }) {
         {tab === 'info' && (
           <div>
             <h3 style={{ color: '#C9A84C', marginBottom: '8px' }}>Когда и где</h3>
-            <p style={{ color: '#8A9BB8', marginBottom: '4px' }}>📍 {tournament.Город}</p>
-            <p style={{ color: '#8A9BB8', marginBottom: '16px' }}>🕐 {tournament.Дата} / {tournament.Время}</p>
+            <p style={{ color: '#8A9BB8', marginBottom: '4px' }}>📍 {tournament.city}</p>
+            <p style={{ color: '#8A9BB8', marginBottom: '16px' }}>🕐 {formatDate(tournament.date, tournament.time)}</p>
 
-            {tournament.Описание && (
+            {tournament.description && (
               <>
                 <h3 style={{ color: '#C9A84C', marginBottom: '8px' }}>Описание</h3>
-                <p style={{ color: '#FFFFFF', lineHeight: 1.6, marginBottom: '24px' }}>{tournament.Описание}</p>
+                <p style={{ color: '#FFFFFF', lineHeight: 1.6, marginBottom: '24px' }}>{tournament.description}</p>
               </>
             )}
 
-            {/* Кнопка записи */}
             <div style={{ marginTop: '24px' }}>
               {!status && (
                 <button onClick={register} disabled={loading} style={{
@@ -175,7 +183,7 @@ export default function TournamentDetail({ user }) {
                 padding: '12px 0', borderBottom: '1px solid #C9A84C11'
               }}>
                 <span style={{ color: '#C9A84C', fontWeight: 700, width: '24px' }}>{i + 1}</span>
-                <span style={{ fontWeight: 600 }}>{p.Никнейм}</span>
+                <span style={{ fontWeight: 600 }}>{p.users?.nickname || p.users?.first_name || '—'}</span>
               </div>
             ))}
           </div>
