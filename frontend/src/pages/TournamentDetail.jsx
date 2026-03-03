@@ -12,21 +12,27 @@ export default function TournamentDetail({ user }) {
   const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  const loadParticipants = () => {
+    return fetch(`${API}/api/registrations/tournament/${id}`)
+      .then(r => r.json())
+      .then(data => { if (data.ok) setParticipants(data.data) })
+  }
+
   useEffect(() => {
     fetch(`${API}/api/tournaments/${id}`)
       .then(r => r.json())
       .then(data => { if (data.ok) setTournament(data.data) })
 
-    fetch(`${API}/api/registrations/tournament/${id}`)
-      .then(r => r.json())
-      .then(data => { if (data.ok) setParticipants(data.data) })
+    loadParticipants()
 
     if (user) {
       fetch(`${API}/api/registrations/user/${user.id}`)
         .then(r => r.json())
         .then(data => {
           if (data.ok) {
-            const reg = data.data.find(r => String(r['ID турнира']) === String(id) && r.Статус !== 'отменён')
+            const reg = data.data.find(
+              r => String(r['ID турнира']) === String(id) && r.Статус !== 'отменён'
+            )
             if (reg) setStatus(reg.Статус)
           }
         })
@@ -41,7 +47,10 @@ export default function TournamentDetail({ user }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tg_id: user.id, tournament_id: id })
     }).then(r => r.json())
-    if (res.ok) setStatus(res.status)
+    if (res.ok) {
+      setStatus(res.status)
+      await loadParticipants()
+    }
     setLoading(false)
   }
 
@@ -54,6 +63,7 @@ export default function TournamentDetail({ user }) {
       body: JSON.stringify({ tg_id: user.id, tournament_id: id })
     })
     setStatus(null)
+    await loadParticipants()
     setLoading(false)
   }
 
@@ -65,7 +75,7 @@ export default function TournamentDetail({ user }) {
     <div>
       {/* Шапка */}
       <div style={{ background: 'linear-gradient(135deg, #1A6B3C, #0F1E40)', padding: '32px 16px 20px' }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'none', color: '#C9A84C', fontSize: '14px', marginBottom: '12px' }}>
+        <button onClick={() => navigate(-1)} style={{ background: 'none', color: '#C9A84C', fontSize: '14px', marginBottom: '12px', cursor: 'pointer' }}>
           ← Назад
         </button>
         <h1 style={{ fontSize: '26px', fontWeight: 900 }}>{tournament.Название}</h1>
@@ -78,7 +88,8 @@ export default function TournamentDetail({ user }) {
             padding: '8px 16px', borderRadius: '20px', fontSize: '13px',
             background: tab === t ? '#C9A84C' : '#0F1E40',
             color: tab === t ? '#1B2D5E' : '#8A9BB8',
-            border: '1px solid #C9A84C33', fontWeight: tab === t ? 700 : 400
+            border: '1px solid #C9A84C33', fontWeight: tab === t ? 700 : 400,
+            cursor: 'pointer'
           }}>
             {t === 'info' ? '🏆 О турнире' : `👥 Участники (${active.length}/${tournament['Мест всего']})`}
           </button>
@@ -95,7 +106,7 @@ export default function TournamentDetail({ user }) {
             {tournament.Описание && (
               <>
                 <h3 style={{ color: '#C9A84C', marginBottom: '8px' }}>Описание</h3>
-                <p style={{ color: '#FFFFFF', lineHeight: 1.6 }}>{tournament.Описание}</p>
+                <p style={{ color: '#FFFFFF', lineHeight: 1.6, marginBottom: '24px' }}>{tournament.Описание}</p>
               </>
             )}
 
@@ -103,35 +114,51 @@ export default function TournamentDetail({ user }) {
             <div style={{ marginTop: '24px' }}>
               {!status && (
                 <button onClick={register} disabled={loading} style={{
-                  width: '100%', padding: '14px', borderRadius: '12px',
-                  background: '#C9A84C', color: '#1B2D5E', fontSize: '16px', fontWeight: 700
+                  width: '100%', padding: '16px', borderRadius: '12px',
+                  background: loading ? '#8A9BB8' : '#C9A84C',
+                  color: '#1B2D5E', fontSize: '16px', fontWeight: 700,
+                  cursor: loading ? 'not-allowed' : 'pointer'
                 }}>
                   {loading ? 'Загрузка...' : 'Записаться'}
                 </button>
               )}
               {status === 'записан' && (
                 <div>
-                  <div style={{ background: '#1A6B3C22', border: '1px solid #1A6B3C', borderRadius: '12px', padding: '12px', marginBottom: '12px', textAlign: 'center', color: '#1A6B3C' }}>
+                  <div style={{
+                    background: '#1A6B3C', border: '1px solid #2ecc71',
+                    borderRadius: '12px', padding: '14px',
+                    marginBottom: '12px', textAlign: 'center',
+                    color: '#fff', fontWeight: 700, fontSize: '15px'
+                  }}>
                     ✅ Вы записаны
                   </div>
                   <button onClick={cancel} disabled={loading} style={{
-                    width: '100%', padding: '12px', borderRadius: '12px',
-                    background: 'transparent', border: '1px solid #C0392B', color: '#C0392B', fontSize: '14px'
+                    width: '100%', padding: '14px', borderRadius: '12px',
+                    background: '#C0392B', color: '#fff',
+                    fontSize: '14px', fontWeight: 700,
+                    cursor: loading ? 'not-allowed' : 'pointer'
                   }}>
-                    Отменить запись
+                    {loading ? 'Загрузка...' : 'Отменить запись'}
                   </button>
                 </div>
               )}
               {status === 'лист ожидания' && (
                 <div>
-                  <div style={{ background: '#C9A84C22', border: '1px solid #C9A84C', borderRadius: '12px', padding: '12px', marginBottom: '12px', textAlign: 'center', color: '#C9A84C' }}>
+                  <div style={{
+                    background: '#7d6608', border: '1px solid #C9A84C',
+                    borderRadius: '12px', padding: '14px',
+                    marginBottom: '12px', textAlign: 'center',
+                    color: '#fff', fontWeight: 700, fontSize: '15px'
+                  }}>
                     ⏳ Вы в листе ожидания
                   </div>
                   <button onClick={cancel} disabled={loading} style={{
-                    width: '100%', padding: '12px', borderRadius: '12px',
-                    background: 'transparent', border: '1px solid #C0392B', color: '#C0392B', fontSize: '14px'
+                    width: '100%', padding: '14px', borderRadius: '12px',
+                    background: '#C0392B', color: '#fff',
+                    fontSize: '14px', fontWeight: 700,
+                    cursor: loading ? 'not-allowed' : 'pointer'
                   }}>
-                    Отменить
+                    {loading ? 'Загрузка...' : 'Отменить'}
                   </button>
                 </div>
               )}
@@ -143,9 +170,12 @@ export default function TournamentDetail({ user }) {
           <div>
             {active.length === 0 && <p style={{ color: '#8A9BB8' }}>Пока никто не записался</p>}
             {active.map((p, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0', borderBottom: '1px solid #C9A84C11' }}>
-                <span style={{ color: '#8A9BB8', width: '24px' }}>{i + 1}</span>
-                <span>{p.TG_ID}</span>
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '12px 0', borderBottom: '1px solid #C9A84C11'
+              }}>
+                <span style={{ color: '#C9A84C', fontWeight: 700, width: '24px' }}>{i + 1}</span>
+                <span style={{ fontWeight: 600 }}>{p.Никнейм}</span>
               </div>
             ))}
           </div>
