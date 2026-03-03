@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getSheet, addRow, updateRow } = require('../services/sheets');
+const cache = require('../services/cache');
 
 // Получить все записи на турнир
 router.get('/tournament/:tournamentId', async (req, res) => {
@@ -49,7 +50,6 @@ router.post('/', async (req, res) => {
       getSheet('tournaments')
     ]);
 
-    // Проверяем не записан ли уже
     const existing = registrations.find(
       r => String(r.TG_ID) === String(tg_id) &&
            String(r['ID турнира']) === String(tournament_id) &&
@@ -79,6 +79,9 @@ router.post('/', async (req, res) => {
       'Дата записи': new Date().toLocaleDateString('ru-RU')
     });
 
+    // Сбрасываем кеш регистраций
+    cache.invalidate('registrations');
+
     res.json({ ok: true, status });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -98,6 +101,10 @@ router.post('/cancel', async (req, res) => {
     if (!reg) return res.status(404).json({ ok: false, error: 'Запись не найдена' });
 
     await updateRow('registrations', reg.ID, { ...reg, Статус: 'отменён' });
+
+    // Сбрасываем кеш регистраций
+    cache.invalidate('registrations');
+
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
