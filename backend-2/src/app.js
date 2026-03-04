@@ -71,6 +71,14 @@ app.get('/', function(req, res) {
 // Error handler (must be last)
 app.use(errorHandler);
 
+// Keep Supabase alive - ping every 4 minutes
+setInterval(function() {
+  var supabase = require('./services/supabase');
+  supabase.from('tournaments').select('id').limit(1).then(function() {
+    console.log('[PING] Supabase alive');
+  }).catch(function() {});
+}, 4 * 60 * 1000);
+
 app.listen(config.port, function() {
   console.log('[API] Server running on port ' + config.port);
 });
