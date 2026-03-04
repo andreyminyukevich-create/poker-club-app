@@ -69,6 +69,7 @@ export default function Rating() {
 
       {filtered.map(function(player, i) {
         var initials = (player.nickname || '?').slice(0, 2).toUpperCase()
+        var photoUrl = player.photo_url || null
         return (
           <div key={player.id || i} className="rating-row">
             <span className="rating-pos">{i + 1}</span>
@@ -77,9 +78,12 @@ export default function Rating() {
               background: 'var(--bg)', border: '1px solid var(--gold-dim)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '12px', fontWeight: '600', color: 'var(--gray)',
-              marginRight: '10px', flexShrink: 0
+              marginRight: '10px', flexShrink: 0, overflow: 'hidden'
             }}>
-              {initials}
+              {photoUrl
+                ? <img src={photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : initials
+              }
             </div>
             <span className="rating-name">{player.nickname}</span>
             <span className="rating-stat">{player.knockouts || 0}</span>
