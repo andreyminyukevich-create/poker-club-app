@@ -6,6 +6,8 @@ import Tournaments from './pages/Tournaments'
 import Rating from './pages/Rating'
 import Profile from './pages/Profile'
 import TournamentDetail from './pages/TournamentDetail'
+import FAQ from './pages/FAQ'
+import About from './pages/About'
 import useTelegram from './hooks/useTelegram'
 import { registerMe } from './api/users'
 
@@ -34,6 +36,8 @@ export default function App() {
           <Route path="/tournaments/:id" element={<TournamentDetail user={user} />} />
           <Route path="/rating" element={<Rating />} />
           <Route path="/profile" element={<Profile user={user} profile={profile} setProfile={setProfile} />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </div>
       <BottomNav />
