@@ -135,7 +135,7 @@ export default function Home({ user }) {
       </div>
 
       <div style={{ textAlign: 'center', padding: '24px 0 8px' }}>
-        <img src={IMAGES.logo} alt="МПЗ" style={{ height: '60px', objectFit: 'contain', opacity: 0.85 }} />
+        <img src={IMAGES.logo} alt="МПЗ" style={{ height: '180px', objectFit: 'contain', opacity: 0.85 }} />
       </div>
     </div>
   )
