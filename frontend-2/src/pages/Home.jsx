@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAll } from '../api/tournaments'
+import { IMAGES, getChipForTournament } from '../config'
 import Loader from '../components/Loader'
 import ErrorState from '../components/ErrorState'
 
@@ -41,24 +42,30 @@ export default function Home({ user }) {
 
   return (
     <div className="page">
-      <div className="flex-between mb-16">
-        <h1 className="text-gold" style={{ fontSize: '20px', fontWeight: 700 }}>
+      <div className="mb-16">
+        <h1 className="title-display text-gold" style={{ fontSize: '20px', fontStyle: 'italic' }}>
           Московский Покерный Зал
         </h1>
       </div>
 
-      <p className="text-gray text-sm mb-8">Ближайший турнир</p>
+      <p className="subtitle mb-8">Ближайший турнир</p>
 
       {loading && <Loader />}
       {error && <ErrorState message={error} onRetry={load} />}
 
       {!loading && !error && tournament && (
-        <div className="card mb-16 cursor-pointer" onClick={function() { navigate('/tournaments/' + tournament.id) }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{tournament.name}</h2>
-          <div className="flex gap-8 flex-wrap">
-            <span className="badge">{tournament.city}</span>
-            <span className="badge">{formatDate(tournament.date, tournament.time)}</span>
+        <div
+          className="card card-tournament mb-16 cursor-pointer"
+          onClick={function() { navigate('/tournaments/' + tournament.id) }}
+        >
+          <div className="card-info">
+            <h2 className="title-display title-md mb-8">{tournament.name}</h2>
+            <div className="flex gap-8 flex-wrap">
+              <span className="badge">{tournament.city}</span>
+              <span className="badge">{formatDate(tournament.date, tournament.time)}</span>
+            </div>
           </div>
+          <img className="card-chip" src={getChipForTournament(0)} alt="" />
         </div>
       )}
 
@@ -67,25 +74,34 @@ export default function Home({ user }) {
       )}
 
       <div
-        className="card mb-16 cursor-pointer"
-        style={{ background: 'linear-gradient(135deg, #1A6B3C, #0F1E40)', borderColor: '#1A6B3C' }}
+        className="card card-banner mb-16 cursor-pointer"
+        style={{ backgroundImage: 'url(' + IMAGES.bannerRating + ')' }}
         onClick={function() { navigate('/rating') }}
       >
-        <h2 className="font-black" style={{ fontSize: '22px', marginBottom: '8px' }}>РЕЙТИНГ</h2>
-        <button className="btn btn-outline btn-sm">Рейтинг игроков</button>
+        <div className="card-banner-overlay"></div>
+        <div className="card-banner-content">
+          <h2 className="title-display title-lg mb-4">РЕЙТИНГ</h2>
+          <p className="title-display text-gold" style={{ fontSize: '14px', marginBottom: '12px' }}>
+            Московский Покерный Зал
+          </p>
+          <button className="btn btn-outline btn-sm" onClick={function(e) { e.stopPropagation(); navigate('/rating') }}>
+            Рейтинг игроков
+          </button>
+        </div>
       </div>
 
       <div className="grid-2 mb-12">
-        <div className="card">
-          <p className="font-bold mb-8">SUPPORT</p>
+        <div className="card cursor-pointer">
+          <p className="title-display title-md mb-8">SUPPORT</p>
+          <span className="badge">Связаться</span>
         </div>
-        <div className="card">
-          <p className="font-bold">О КЛУБЕ</p>
+        <div className="card cursor-pointer">
+          <p className="title-display title-md">О КЛУБЕ</p>
         </div>
       </div>
 
-      <div className="card">
-        <p className="font-bold">Q&A</p>
+      <div className="card cursor-pointer">
+        <p className="title-display title-md">{"Q&A"}</p>
       </div>
     </div>
   )
