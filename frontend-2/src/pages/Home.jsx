@@ -53,14 +53,13 @@ export default function Home({ user }) {
 
   return (
     <div className="page">
-      <div className="mb-16" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <img src={IMAGES.logo} alt="МПЗ" style={{ height: '44px', objectFit: 'contain' }} />
-        <h1 className="title-display text-gold" style={{ fontSize: '18px', fontStyle: 'italic' }}>
+      <div className="mb-16" style={{ textAlign: 'center' }}>
+        <h1 className="title-display text-gold" style={{ fontSize: '20px', fontStyle: 'italic' }}>
           Московский Покерный Зал
         </h1>
       </div>
 
-      <p className="subtitle mb-8">Ближайший турнир</p>
+      <p className="subtitle mb-8" style={{ paddingLeft: '4px' }}>Ближайший турнир</p>
 
       {loading && <Loader />}
       {error && <ErrorState message={error} onRetry={load} />}
@@ -133,6 +132,10 @@ export default function Home({ user }) {
             <polyline points="9 18 15 12 9 6"/>
           </svg>
         </div>
+      </div>
+
+      <div style={{ textAlign: 'center', padding: '24px 0 8px' }}>
+        <img src={IMAGES.logo} alt="МПЗ" style={{ height: '60px', objectFit: 'contain', opacity: 0.85 }} />
       </div>
     </div>
   )
