@@ -10,12 +10,3 @@ export default function ErrorState({ message, onRetry }) {
     </div>
   )
 }
-```
-
-**2. `backend-2/src/services/registrations.js`** — найди строку:
-```
-.select('*, tournaments(name, date, time)')
-```
-замени на:
-```
-.select('*, tournaments!registrations_tournament_id_fk(name, date, time)')
