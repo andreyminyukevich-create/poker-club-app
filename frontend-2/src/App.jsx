@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
 import Home from './pages/Home'
 import Tournaments from './pages/Tournaments'
@@ -26,7 +26,7 @@ export default function App() {
   }, [user])
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <div style={{ paddingBottom: '70px' }}>
         <Routes>
           <Route path="/" element={<Home user={user} />} />
@@ -37,6 +37,6 @@ export default function App() {
         </Routes>
       </div>
       <BottomNav />
-    </HashRouter>
+    </BrowserRouter>
   )
 }
