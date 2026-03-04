@@ -16,6 +16,7 @@ export var IMAGES = {
   bgBlue: IMG + '/bg-blue.png.png',
   avatarDefault: IMG + '/avatar-default.png.png',
   trophy: IMG + '/trophy.png.png',
+  logo: IMG + '/logo.png',
 }
 
 // Rotate chips for tournament cards
