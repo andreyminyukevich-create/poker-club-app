@@ -83,35 +83,6 @@ export default function Home({ user }) {
       </div>
 
       <div className="card">
-        <p className="font-bold">Q&A</p>
-      </div>
-    </div>
-  )
-}      <div className="grid-2 mb-12">
-        <div className="card">
-          <p className="font-bold mb-8">SUPPORT</p>
-        </div>
-        <div className="card">
-          <p className="font-bold">О КЛУБЕ</p>
-        </div>
-      </div>
-
-      <div className="card">
-        <p className="font-bold">Q&A</p>
-      </div>
-    </div>
-  )
-}      <div className="grid-2 mb-12">
-        <div className="card">
-          <p className="font-bold mb-8">SUPPORT</p>
-          <span style={{ fontSize: '20px' }}>\u{1F4DE}</span>
-        </div>
-        <div className="card">
-          <p className="font-bold">\u041E \u041A\u041B\u0423\u0411\u0415</p>
-        </div>
-      </div>
-
-      <div className="card">
         <p className="font-bold">{"Q&A"}</p>
       </div>
     </div>
