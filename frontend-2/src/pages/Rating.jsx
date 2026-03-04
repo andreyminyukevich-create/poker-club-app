@@ -33,32 +33,29 @@ export default function Rating() {
   return (
     <div className="page">
       <h1 className="text-gold font-black mb-16" style={{ fontSize: '32px' }}>
-        \u0420\u0415\u0419\u0422\u0418\u041D\u0413
+        РЕЙТИНГ
       </h1>
 
-      <div className="mb-16" style={{ position: 'relative' }}>
-        <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} className="text-gray">
-          \u{1F50D}
-        </span>
+      <div className="mb-16">
         <input
           value={search}
           onChange={function(e) { setSearch(e.target.value) }}
-          placeholder="\u041F\u043E\u0438\u0441\u043A \u043F\u043E \u043D\u0438\u043A\u043D\u0435\u0439\u043C\u0443"
+          placeholder="Поиск по никнейму"
           className="input"
-          style={{ paddingLeft: '36px', borderColor: '#C9A84C33' }}
+          style={{ borderColor: '#C9A84C33' }}
         />
       </div>
 
       <div className="flex text-gray text-sm" style={{ padding: '0 8px 8px' }}>
         <span style={{ width: '32px' }}>#</span>
-        <span className="flex-1">\u041D\u0438\u043A\u043D\u0435\u0439\u043C</span>
-        <span style={{ width: '50px', textAlign: 'right' }}>\u041D\u043E\u043A\u0438</span>
-        <span style={{ width: '70px', textAlign: 'right' }}>\u041E\u0447\u043A\u0438</span>
+        <span className="flex-1">Никнейм</span>
+        <span style={{ width: '50px', textAlign: 'right' }}>Ноки</span>
+        <span style={{ width: '70px', textAlign: 'right' }}>Очки</span>
       </div>
 
       {loading && <Loader />}
       {error && <ErrorState message={error} onRetry={load} />}
-      {!loading && !error && filtered.length === 0 && <EmptyState text="\u041D\u0435\u0442 \u0434\u0430\u043D\u043D\u044B\u0445" />}
+      {!loading && !error && filtered.length === 0 && <EmptyState text="Нет данных" />}
 
       {filtered.map(function(player, i) {
         return (
