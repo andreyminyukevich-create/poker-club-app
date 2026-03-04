@@ -53,8 +53,9 @@ export default function Home({ user }) {
 
   return (
     <div className="page">
-      <div className="mb-16">
-        <h1 className="title-display text-gold" style={{ fontSize: '20px', fontStyle: 'italic' }}>
+      <div className="mb-16" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <img src={IMAGES.logo} alt="МПЗ" style={{ height: '44px', objectFit: 'contain' }} />
+        <h1 className="title-display text-gold" style={{ fontSize: '18px', fontStyle: 'italic' }}>
           Московский Покерный Зал
         </h1>
       </div>
