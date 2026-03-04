@@ -39,12 +39,12 @@ export default function Tournaments() {
   return (
     <div className="page">
       <h1 className="text-gold font-black mb-16" style={{ fontSize: '24px' }}>
-        \u0422\u0423\u0420\u041D\u0418\u0420\u042B
+        ТУРНИРЫ
       </h1>
 
       {loading && <Loader />}
       {error && <ErrorState message={error} onRetry={load} />}
-      {!loading && !error && tournaments.length === 0 && <EmptyState text="\u041D\u0435\u0442 \u043F\u0440\u0435\u0434\u0441\u0442\u043E\u044F\u0449\u0438\u0445 \u0442\u0443\u0440\u043D\u0438\u0440\u043E\u0432" />}
+      {!loading && !error && tournaments.length === 0 && <EmptyState text="Нет предстоящих турниров" />}
 
       {tournaments.map(function(t) {
         return (
@@ -53,11 +53,10 @@ export default function Tournaments() {
               <div className="flex-1">
                 <h2 style={{ fontSize: '17px', fontWeight: 800, marginBottom: '8px' }}>{t.name}</h2>
                 <div className="flex gap-8 flex-wrap">
-                  <span className="badge">\u{1F465} {t.seats} \u043C\u0435\u0441\u0442</span>
-                  <span className="badge">\u{1F550} {formatDate(t.date, t.time)}</span>
+                  <span className="badge">{t.seats} мест</span>
+                  <span className="badge">{formatDate(t.date, t.time)}</span>
                 </div>
               </div>
-              <span style={{ fontSize: '28px', marginLeft: '12px' }}>\u2660\uFE0F</span>
             </div>
           </div>
         )
