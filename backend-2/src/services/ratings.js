@@ -1,7 +1,7 @@
 const supabase = require('./supabase');
 
 async function getAll(filters) {
-  let query = supabase.from('ratings').select('*, users(photo_url)').order('points', { ascending: false });
+  let query = supabase.from('ratings').select('*, users!ratings_tg_id_fk(photo_url)').order('points', { ascending: false });
   if (filters && filters.city) query = query.eq('city', filters.city);
   if (filters && filters.season) query = query.eq('season', Number(filters.season));
   if (filters && filters.search) query = query.ilike('nickname', '%' + filters.search + '%');
