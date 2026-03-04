@@ -4,7 +4,7 @@ async function upsertMe(req, res, next) {
   try {
     var tgUser = req.tgUser;
     var result = await usersService.upsertUser(
-      tgUser.id, tgUser.first_name, tgUser.last_name, ''
+      tgUser.id, tgUser.first_name, tgUser.last_name, '', tgUser.photo_url || ''
     );
     res.json(result);
   } catch (err) { next(err); }
