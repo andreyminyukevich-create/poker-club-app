@@ -32,7 +32,7 @@ async function getByTournament(tournamentId) {
 async function getByUser(tgId) {
   const { data, error } = await supabase
     .from('registrations')
-    .select('*, tournaments(name, date, time)')
+    .select('*, tournaments!registrations_tournament_id_fk(name, date, time)')
     .eq('tg_id', tgId)
     .order('created_at', { ascending: false });
   if (error) throw error;
