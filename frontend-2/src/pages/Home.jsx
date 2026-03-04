@@ -112,7 +112,7 @@ export default function Home({ user }) {
       </div>
 
       <div className="card">
-        <p className="font-bold">Q&A</p>
+        <p className="font-bold">{"Q&A"}</p>
       </div>
     </div>
   )
