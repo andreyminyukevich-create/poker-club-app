@@ -1,7 +1,16 @@
-export default function Loader({ text }) {
+export default function Loader() {
   return (
-    <div className="text-center mt-24 text-gray">
-      {text || '\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430...'}
+    <div className="flex-center" style={{ padding: '40px 0' }}>
+      <div style={{
+        width: '32px', height: '32px',
+        border: '3px solid var(--gold-dim)',
+        borderTop: '3px solid var(--gold)',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite'
+      }}></div>
+      <style>{
+        '@keyframes spin { to { transform: rotate(360deg); } }'
+      }</style>
     </div>
   )
 }
