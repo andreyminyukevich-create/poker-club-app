@@ -5,9 +5,16 @@ export default function useTelegram() {
 
   useEffect(function() {
     if (tg) {
+      tg.ready();
       tg.expand();
       tg.setBackgroundColor('#1B2D5E');
-      tg.ready();
+      tg.setHeaderColor('#1B2D5E');
+      if (tg.requestFullscreen) {
+        tg.requestFullscreen();
+      }
+      if (tg.disableVerticalSwipes) {
+        tg.disableVerticalSwipes();
+      }
     }
   }, []);
 
