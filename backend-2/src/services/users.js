@@ -2,8 +2,7 @@ const supabase = require('./supabase');
 const { generateNickname } = require('../utils/nickname');
 const { NotFoundError, ConflictError } = require('../utils/errors');
 
-async function upsertUser(tgId, firstName, lastName, city) {
-  // Generate unique nickname
+async function upsertUser(tgId, firstName, lastName, city, photoUrl) {
   let nickname = generateNickname();
   let attempts = 0;
   while (attempts < 10) {
@@ -20,6 +19,7 @@ async function upsertUser(tgId, firstName, lastName, city) {
     p_first_name: firstName || '',
     p_last_name: lastName || '',
     p_city: city || '',
+    p_photo_url: photoUrl || '',
   });
 
   if (error) throw error;
